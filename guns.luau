@@ -1,32 +1,25 @@
-
 do
-
 	local a = game:GetService("Players")
 	local b = game:GetService("UserInputService")
 
 	local c = a.LocalPlayer
 	local d = c:WaitForChild("PlayerGui")
 
-
 	local e, f, g = false, false, false
 	local h = {}
 	local i = {}
 
-
 	local j, k, l, m, n
-
 
 	local o = false
 	local p = { "OrangeShip", "GreenShip" }
 
-
 	local q = {
 		C1 = "0.1",
-		C2 = "0",
-		C2Move = "5",
-		F3 = "1"
+		C2 = "0.01",
+		C2Move = "0",
+		F3 = "0.5"
 	}
-
 
 	local r = {
 		C1 = {
@@ -56,7 +49,6 @@ do
 		}
 	}
 
-
 	local s = 0
 	local t = 2
 
@@ -69,6 +61,7 @@ do
 		if x ~= nil then return x end
 		return v
 	end
+
 	local function v(w)
 		return math.floor(w * 1e9 + (w >= 0 and 0.5 or -0.5)) / 1e9
 	end
@@ -78,28 +71,18 @@ do
 	end
 
 	local function x(y)
-		local z = Vector3.new(
-			w(-3, 3),
-			w(-1, 1),
-			w(-3, 3)
-		)
+		local z = Vector3.new(w(-3, 3), w(-1, 1), w(-3, 3))
 		local aa = y + z
-		if aa.Magnitude > 0 then
-			aa = aa.Unit
-		end
+		if aa.Magnitude > 0 then aa = aa.Unit end
 		return { aa.X, aa.Y, aa.Z }
 	end
 
 	local function y()
 		local z = {}
-
 		if not o then
-			for _, aa in ipairs(p) do
-				z[aa] = true
-			end
+			for _, aa in ipairs(p) do z[aa] = true end
 			return z
 		end
-
 		local ab = (c.Team and c.Team.Name) or ""
 		if ab == "Orange Team" then
 			z["OrangeShip"] = true
@@ -109,84 +92,55 @@ do
 			z["OrangeShip"] = true
 			z["GreenShip"] = true
 		else
-			for _, aa in ipairs(p) do
-				z[aa] = true
-			end
+			for _, aa in ipairs(p) do z[aa] = true end
 		end
-
 		return z
 	end
 
-	----------------------------------------------------------------
-	-- cannon mapping
-	----------------------------------------------------------------
 	local function z()
 		local aa = {}
 		for ab, ac in pairs(r) do
 			for ad, ae in pairs(ac.guns) do
-				if ae then
-					aa[ad] = ab
-				end
+				if ae then aa[ad] = ab end
 			end
 		end
 		i = aa
 	end
 
-	----------------------------------------------------------------
-	-- remote lookup
-	----------------------------------------------------------------
 	local function aa(ab, ac)
-		if not ab or not ab:IsDescendantOf(workspace) then
-			return nil
-		end
-
+		if not ab or not ab:IsDescendantOf(workspace) then return nil end
 		local ad = ab:FindFirstChild(ac)
-		if ad and ad:IsA("RemoteEvent") then
+		if ad and (ad:IsA("RemoteEvent") or ad:IsA("UnreliableRemoteEvent")) then
 			return ad
 		end
-
 		local ae = ab:FindFirstChild(ac, true)
-		if ae and ae:IsA("RemoteEvent") then
+		if ae and (ae:IsA("RemoteEvent") or ae:IsA("UnreliableRemoteEvent")) then
 			return ae
 		end
-
 		return nil
 	end
 
-	----------------------------------------------------------------
-	-- scan + cache
-	----------------------------------------------------------------
 	local function ab()
 		local ac = {}
 		local ad = y()
-
 		for _, ae in ipairs(workspace:GetDescendants()) do
 			local af = i[ae.Name]
 			if af then
 				local ag = ae.Parent
 				local ah = false
 				while ag and ag ~= workspace do
-					if ad[ag.Name] then
-						ah = true
-						break
-					end
+					if ad[ag.Name] then ah = true break end
 					ag = ag.Parent
 				end
-
 				if ah then
 					local ai = aa(ae, "FireCannon")
 					local aj = (af == "C2") and aa(ae, "MoveCannon") or nil
 					if ai or aj then
-						ac[#ac + 1] = {
-							group = af,
-							fire = ai,
-							move = aj
-						}
+						ac[#ac + 1] = { group = af, fire = ai, move = aj }
 					end
 				end
 			end
 		end
-
 		h = ac
 		s = os.clock()
 	end
@@ -194,16 +148,12 @@ do
 	local function ac()
 		local ad = {}
 		for _, ae in ipairs(h) do
-			if (ae.fire and ae.fire:IsDescendantOf(workspace))
-			or (ae.move and ae.move:IsDescendantOf(workspace)) then
+			if (ae.fire and ae.fire:IsDescendantOf(workspace)) or (ae.move and ae.move:IsDescendantOf(workspace)) then
 				ad[#ad + 1] = ae
 			end
 		end
 		h = ad
-
-		if #h == 0 or (os.clock() - s) >= t then
-			ab()
-		end
+		if #h == 0 or (os.clock() - s) >= t then ab() end
 	end
 
 	local function ad()
@@ -211,21 +161,13 @@ do
 		return h
 	end
 
-	----------------------------------------------------------------
-	-- actions
-	----------------------------------------------------------------
 	local function ae()
 		local af = r.C1.remotes.FireCannon
 		local ag = {}
-		for ah, ai in ipairs(af.args) do
-			ag[ah] = u(ai)
-		end
-
+		for ah, ai in ipairs(af.args) do ag[ah] = u(ai) end
 		for _, aj in ipairs(ad()) do
 			if aj.group == "C1" and aj.fire then
-				pcall(function()
-					aj.fire:FireServer(unpack(ag))
-				end)
+				pcall(function() aj.fire:FireServer(unpack(ag)) end)
 			end
 		end
 	end
@@ -233,15 +175,10 @@ do
 	local function af()
 		local ag = r.C2.remotes.FireCannon
 		local ah = {}
-		for ai, aj in ipairs(ag.args) do
-			ah[ai] = u(aj)
-		end
-
+		for ai, aj in ipairs(ag.args) do ah[ai] = u(aj) end
 		for _, ak in ipairs(ad()) do
 			if ak.group == "C2" and ak.fire then
-				pcall(function()
-					ak.fire:FireServer(unpack(ah))
-				end)
+				pcall(function() ak.fire:FireServer(unpack(ah)) end)
 			end
 		end
 	end
@@ -252,42 +189,29 @@ do
 				local ai = ah.move.Parent
 				if ai and ai:IsA("BasePart") then
 					local aj = x(ai.CFrame.LookVector)
-					pcall(function()
-						ah.move:FireServer(unpack(aj))
-					end)
+					pcall(function() ah.move:FireServer(unpack(aj)) end)
 				end
 			end
 		end
 	end
 
-	----------------------------------------------------------------
-	-- test3 F3ging (foolproof)
-	----------------------------------------------------------------
 	local function ah()
 		local ai = y()
-
 		for aj in pairs(ai) do
 			local ak = workspace:FindFirstChild(aj)
-			if not ak or not ak:IsDescendantOf(workspace) then continue end
-
-			local al = ak:FindFirstChild("Pieces")
-			if not al then continue end
-
-			local am = al:FindFirstChild("StopControl")
-			if not am then continue end
-
-			local an = am:FindFirstChildOfClass("ClickDetector")
-			if not an then continue end
-
-			pcall(function()
-				fireclickdetector(an)
-			end)
+			if ak and ak:IsDescendantOf(workspace) then
+				local al = ak:FindFirstChild("Pieces")
+				if al then
+					local am = al:FindFirstChild("StopControl")
+					if am then
+						local an = am:FindFirstChildOfClass("ClickDetector")
+						if an then pcall(function() fireclickdetector(an) end) end
+					end
+				end
+			end
 		end
 	end
 
-	----------------------------------------------------------------
-	-- UI
-	----------------------------------------------------------------
 	local function ai()
 		if l then l.Text = e and "test1: ON" or "test1: OFF" end
 		if m then m.Text = f and "test2: ON" or "test2: OFF" end
@@ -337,26 +261,14 @@ do
 	end
 
 	local function ak()
-		l.Activated:Connect(function()
-			e = not e
-			ai()
-		end)
-
-		m.Activated:Connect(function()
-			f = not f
-			ai()
-		end)
-
-		n.Activated:Connect(function()
-			g = not g
-			ai()
-		end)
+		l.Activated:Connect(function() e = not e ai() end)
+		m.Activated:Connect(function() f = not f ai() end)
+		n.Activated:Connect(function() g = not g ai() end)
 
 		local al, am, an = false, nil, nil
 
 		k.InputBegan:Connect(function(ao)
-			if ao.UserInputType == Enum.UserInputType.MouseButton1
-			or ao.UserInputType == Enum.UserInputType.Touch then
+			if ao.UserInputType == Enum.UserInputType.MouseButton1 or ao.UserInputType == Enum.UserInputType.Touch then
 				al = true
 				am = ao.Position
 				an = k.Position
@@ -364,31 +276,19 @@ do
 		end)
 
 		k.InputEnded:Connect(function(ao)
-			if ao.UserInputType == Enum.UserInputType.MouseButton1
-			or ao.UserInputType == Enum.UserInputType.Touch then
+			if ao.UserInputType == Enum.UserInputType.MouseButton1 or ao.UserInputType == Enum.UserInputType.Touch then
 				al = false
 			end
 		end)
 
 		b.InputChanged:Connect(function(ao)
 			if not al then return end
-			if ao.UserInputType ~= Enum.UserInputType.MouseMovement
-			and ao.UserInputType ~= Enum.UserInputType.Touch then
-				return
-			end
+			if ao.UserInputType ~= Enum.UserInputType.MouseMovement and ao.UserInputType ~= Enum.UserInputType.Touch then return end
 			local ap = ao.Position - am
-			k.Position = UDim2.new(
-				an.X.Scale,
-				an.X.Offset + ap.X,
-				an.Y.Scale,
-				an.Y.Offset + ap.Y
-			)
+			k.Position = UDim2.new(an.X.Scale, an.X.Offset + ap.X, an.Y.Scale, an.Y.Offset + ap.Y)
 		end)
 	end
 
-	----------------------------------------------------------------
-	-- loops
-	----------------------------------------------------------------
 	local function al()
 		task.spawn(function()
 			while true do
@@ -421,11 +321,7 @@ do
 
 	local function am()
 		math.randomseed(os.clock() * 1e6)
-
-		for an, ao in pairs(q) do
-			q[an] = u(ao)
-		end
-
+		for an, ao in pairs(q) do q[an] = u(ao) end
 		z()
 		aj()
 		ak()
