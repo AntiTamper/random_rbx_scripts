@@ -1,4 +1,7 @@
 do
+	local RunService = game:GetService("RunService")
+	if not RunService:IsStudio() then return end
+
 	local Players = game:GetService("Players")
 	local UIS = game:GetService("UserInputService")
 
@@ -7,13 +10,21 @@ do
 
 	local enabled1 = false
 	local enabled2 = false
+
 	local cached = {}
 	local cannonToGroup = {}
+
 	local gui, frame, button1, button2
 
 	local SelfTeamOnly = false
 
 	local shipList = { "OrangeShip", "GreenShip" }
+
+	local delays = {
+		C1 = "0.1",
+		C2 = "0.05",
+		C2Move = "0"
+	}
 
 	local cannonGroups = {
 		C1 = {
@@ -105,32 +116,34 @@ do
 		return math.floor(n * 1e9 + (n >= 0 and 0.5 or -0.5)) / 1e9
 	end
 
-	local function e()
-		return d((math.random() * 2) - 1)
+	local function e(minv, maxv)
+		return d(minv + (math.random() * (maxv - minv)))
 	end
 
 	local function f()
-		return { e(), e(), e() }
+		return { e(-3, 3), e(-1, 1), e(-3, 3) }
 	end
 
 	local function g(inst, remoteName)
 		if not inst or not inst:IsDescendantOf(workspace) then
 			return nil
 		end
+
 		local direct = inst:FindFirstChild(remoteName)
 		if direct and direct:IsA("RemoteEvent") then
 			return direct
 		end
+
 		local deep = inst:FindFirstChild(remoteName, true)
 		if deep and deep:IsA("RemoteEvent") then
 			return deep
 		end
+
 		return nil
 	end
 
 	local function h()
 		local list = {}
-		local seen = {}
 		local shipSet = a()
 
 		for _, inst in ipairs(workspace:GetDescendants()) do
@@ -145,17 +158,12 @@ do
 					end
 					p = p.Parent
 				end
-				if ok then
-					local group = cannonGroups[groupKey]
-					local fire = (group and group.remotes and group.remotes.FireCannon) and g(inst, "FireCannon") or nil
-					local move = (groupKey == "C2") and g(inst, "MoveCannon") or nil
 
+				if ok then
+					local fire = g(inst, "FireCannon")
+					local move = (groupKey == "C2") and g(inst, "MoveCannon") or nil
 					if fire or move then
-						local key = fire or move
-						if not seen[key] then
-							seen[key] = true
-							list[#list + 1] = { group = groupKey, fire = fire, move = move }
-						end
+						list[#list + 1] = { group = groupKey, fire = fire, move = move }
 					end
 				end
 			end
@@ -186,45 +194,63 @@ do
 
 	local function j()
 		i()
+		return cached
+	end
 
-		if enabled1 then
-			for _, item in ipairs(cached) do
-				local group = cannonGroups[item.group]
-				local spec = group and group.remotes and group.remotes.FireCannon
-				local r = item.fire
-				if r and spec and spec.args then
-					local args = {}
-					for idx, v in ipairs(spec.args) do
-						args[idx] = c(v)
-					end
-					pcall(function()
-						r:FireServer(unpack(args))
-					end)
-				end
-			end
+	local function k()
+		local items = j()
+		local spec = cannonGroups.C1.remotes.FireCannon
+		local args = {}
+		for idx, v in ipairs(spec.args) do
+			args[idx] = c(v)
 		end
 
-		if enabled2 then
-			for _, item in ipairs(cached) do
-				if item.group == "C2" and item.move then
-					local args = f()
-					pcall(function()
-						item.move:FireServer(unpack(args))
-					end)
-					task.wait()
-				end
+		for _, item in ipairs(items) do
+			if item.group == "C1" and item.fire then
+				pcall(function()
+					item.fire:FireServer(unpack(args))
+				end)
 			end
 		end
 	end
 
-	local function k(v1, v2)
+	local function l()
+		local items = j()
+		local spec = cannonGroups.C2.remotes.FireCannon
+		local args = {}
+		for idx, v in ipairs(spec.args) do
+			args[idx] = c(v)
+		end
+
+		for _, item in ipairs(items) do
+			if item.group == "C2" and item.fire then
+				pcall(function()
+					item.fire:FireServer(unpack(args))
+				end)
+			end
+		end
+	end
+
+	local function m()
+		local items = j()
+		for _, item in ipairs(items) do
+			if item.group == "C2" and item.move then
+				local args = f()
+				pcall(function()
+					item.move:FireServer(unpack(args))
+				end)
+			end
+		end
+	end
+
+	local function n(v1, v2)
 		if v1 ~= nil then enabled1 = v1 end
 		if v2 ~= nil then enabled2 = v2 end
 		if button1 then button1.Text = enabled1 and "test1: ON" or "test1: OFF" end
 		if button2 then button2.Text = enabled2 and "test2: ON" or "test2: OFF" end
 	end
 
-	local function l()
+	local function o()
 		gui = Instance.new("ScreenGui")
 		gui.Name = "test"
 		gui.ResetOnSpawn = false
@@ -232,7 +258,7 @@ do
 
 		frame = Instance.new("Frame")
 		frame.Name = "test"
-		frame.Size = UDim2.fromOffset(150, 78)
+		frame.Size = UDim2.fromOffset(140, 74)
 		frame.Position = UDim2.new(0.06, 0, 0.55, 0)
 		frame.BackgroundColor3 = Color3.new(0, 0, 0)
 		frame.BackgroundTransparency = 0.5
@@ -253,15 +279,15 @@ do
 
 		local pad = Instance.new("UIPadding")
 		pad.Name = "test"
-		pad.PaddingTop = UDim.new(0, 8)
-		pad.PaddingBottom = UDim.new(0, 8)
-		pad.PaddingLeft = UDim.new(0, 8)
-		pad.PaddingRight = UDim.new(0, 8)
+		pad.PaddingTop = UDim.new(0, 7)
+		pad.PaddingBottom = UDim.new(0, 7)
+		pad.PaddingLeft = UDim.new(0, 7)
+		pad.PaddingRight = UDim.new(0, 7)
 		pad.Parent = frame
 
 		button1 = Instance.new("TextButton")
 		button1.Name = "test"
-		button1.Size = UDim2.new(1, 0, 0, 28)
+		button1.Size = UDim2.new(1, 0, 0, 26)
 		button1.BackgroundColor3 = Color3.new(0, 0, 0)
 		button1.BackgroundTransparency = 0.35
 		button1.TextColor3 = Color3.new(1, 1, 1)
@@ -276,7 +302,7 @@ do
 
 		button2 = Instance.new("TextButton")
 		button2.Name = "test"
-		button2.Size = UDim2.new(1, 0, 0, 28)
+		button2.Size = UDim2.new(1, 0, 0, 26)
 		button2.BackgroundColor3 = Color3.new(0, 0, 0)
 		button2.BackgroundTransparency = 0.35
 		button2.TextColor3 = Color3.new(1, 1, 1)
@@ -290,13 +316,13 @@ do
 		c2.Parent = button2
 	end
 
-	local function m()
+	local function p()
 		button1.Activated:Connect(function()
-			k(not enabled1, nil)
+			n(not enabled1, nil)
 		end)
 
 		button2.Activated:Connect(function()
-			k(nil, not enabled2)
+			n(nil, not enabled2)
 		end)
 
 		local dragging = false
@@ -325,33 +351,69 @@ do
 		end)
 	end
 
-	local function n()
+	local function q()
 		task.spawn(function()
 			while true do
-				if enabled1 or enabled2 then
-					j()
+				if enabled1 then
+					k()
+					task.wait(c(delays.C1) or 0.1)
+				else
+					task.wait(0.05)
 				end
-				task.wait(0.05)
 			end
 		end)
 	end
 
-	local function o()
+	local function r()
+		task.spawn(function()
+			while true do
+				if enabled1 then
+					l()
+					task.wait(c(delays.C2) or 0.05)
+				else
+					task.wait(0.05)
+				end
+			end
+		end)
+	end
+
+	local function s()
+		task.spawn(function()
+			while true do
+				if enabled2 then
+					m()
+					local w = c(delays.C2Move) or 0
+					if w > 0 then
+						task.wait(w)
+					else
+						task.wait()
+					end
+				else
+					task.wait(0.05)
+				end
+			end
+		end)
+	end
+
+	local function t()
 		math.randomseed(os.clock() * 1e6)
 
 		b()
-		l()
-		m()
+		o()
+		p()
 		h()
-		k(false, false)
-		n()
+		n(false, false)
 
 		player:GetPropertyChangedSignal("Team"):Connect(function()
 			if SelfTeamOnly then
 				cached = {}
 			end
 		end)
+
+		q()
+		r()
+		s()
 	end
 
-	o()
+	t()
 end
