@@ -34,7 +34,7 @@ do
 			},
 			remotes = {
 				FireCannon = { args = { "7782023531" } },
-				MoveCannon = { args = {"right","up", "down" } }
+				MoveCannon = { args = {"left", "right","up", "down" } }
 			}
 		},
 		C2 = {
