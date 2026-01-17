@@ -8,7 +8,7 @@ do
 	local enabled = false
 	local cached = {}
 	local cannonToGroup = {}
-	local gui, btn
+	local gui, button
 
 	local SelfTeamOnly = false
 
@@ -101,24 +101,62 @@ do
 		gui.ResetOnSpawn = false
 		gui.Parent = playerGui
 
-		btn = Instance.new("TextButton")
-		btn.Name = "test"
-		btn.Size = UDim2.fromOffset(170, 52)
-		btn.Position = UDim2.new(0.06, 0, 0.55, 0)
-		btn.TextScaled = true
-		btn.BackgroundColor3 = Color3.new(0, 0, 0)
-		btn.BackgroundTransparency = 0.5
-		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.Text = "funny: OFF"
-		btn.Parent = gui
+		button = Instance.new("TextButton")
+		button.Name = "test"
+		button.Size = UDim2.fromOffset(170, 52)
+		button.Position = UDim2.new(0.06, 0, 0.55, 0)
+		button.TextScaled = true
+		button.BackgroundColor3 = Color3.new(0, 0, 0)
+		button.BackgroundTransparency = 0.5
+		button.TextColor3 = Color3.new(1, 1, 1)
+		button.Text = "funny: OFF"
+		button.Parent = gui
 
 		local corner = Instance.new("UICorner")
 		corner.Name = "test"
 		corner.CornerRadius = UDim.new(0, 14)
-		corner.Parent = btn
+		corner.Parent = button
 	end
 
 	local function e()
+		local dragging = false
+		local dragStart
+		local startPos
+
+		button.Activated:Connect(function()
+			f(not enabled)
+		end)
+
+		button.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPos = button.Position
+			end
+		end)
+
+		button.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = false
+			end
+		end)
+
+		UIS.InputChanged:Connect(function(input)
+			if not dragging then return end
+			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
+			local delta = input.Position - dragStart
+			button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end)
+	end
+
+	local function f(v)
+		enabled = v
+		if button then
+			button.Text = v and "funny: ON" or "funny: OFF"
+		end
+	end
+
+	local function g()
 		local list = {}
 		local seen = {}
 		local shipSet = a()
@@ -149,7 +187,7 @@ do
 		cached = list
 	end
 
-	local function f()
+	local function h()
 		local alive = {}
 		for _, item in ipairs(cached) do
 			local r = item.r
@@ -159,12 +197,12 @@ do
 		end
 		cached = alive
 		if #cached == 0 then
-			e()
+			g()
 		end
 	end
 
-	local function g()
-		f()
+	local function i()
+		h()
 		for _, item in ipairs(cached) do
 			local r = item.r
 			if r and r.Parent and r:IsDescendantOf(workspace) then
@@ -175,49 +213,11 @@ do
 		end
 	end
 
-	local function h()
-		local dragging = false
-		local dragStart
-		local startPos
-
-		btn.Activated:Connect(function()
-			i(not enabled)
-		end)
-
-		btn.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				dragging = true
-				dragStart = input.Position
-				startPos = btn.Position
-			end
-		end)
-
-		btn.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				dragging = false
-			end
-		end)
-
-		UIS.InputChanged:Connect(function(input)
-			if not dragging then return end
-			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
-			local delta = input.Position - dragStart
-			btn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		end)
-	end
-
-	local function i(v)
-		enabled = v
-		if btn then
-			btn.Text = v and "funny: ON" or "funny: OFF"
-		end
-	end
-
 	local function j()
 		task.spawn(function()
 			while true do
 				if enabled then
-					g()
+					i()
 				end
 				task.wait(0.05)
 			end
@@ -227,8 +227,8 @@ do
 	local function k()
 		b()
 		d()
-		h()
 		e()
+		g()
 		j()
 
 		player:GetPropertyChangedSignal("Team"):Connect(function()
