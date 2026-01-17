@@ -17,8 +17,8 @@ do
 	local q = {
 		C1 = "0.1",
 		C2 = "0",
-		C1Move = "5",
-		F3 = "1"
+		C1Move = "0.1",
+		F3 = "0.5"
 	}
 
 	local r = {
