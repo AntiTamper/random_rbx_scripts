@@ -52,6 +52,9 @@ do
 		}
 	}
 
+	local lastScan = 0
+	local scanEvery = 2
+
 	local function a()
 		local set = {}
 
@@ -167,6 +170,7 @@ do
 		end
 
 		cached = list
+		lastScan = os.clock()
 	end
 
 	local function i()
@@ -184,7 +188,9 @@ do
 			end
 		end
 		cached = alive
-		if #cached == 0 then
+
+		local now = os.clock()
+		if #cached == 0 or (now - lastScan) >= scanEvery then
 			h()
 		end
 	end
@@ -353,10 +359,8 @@ do
 			while true do
 				if enabled1 then
 					k()
-					task.wait(c(delays.C1) or 0.1)
-				else
-					task.wait(0.05)
 				end
+				task.wait(delays.C1)
 			end
 		end)
 	end
@@ -366,10 +370,8 @@ do
 			while true do
 				if enabled1 then
 					l()
-					task.wait(c(delays.C2) or 0.05)
-				else
-					task.wait(0.05)
 				end
+				task.wait(delays.C2)
 			end
 		end)
 	end
@@ -379,21 +381,18 @@ do
 			while true do
 				if enabled2 then
 					m()
-					local w = c(delays.C2Move) or 0
-					if w > 0 then
-						task.wait(w)
-					else
-						task.wait()
-					end
-				else
-					task.wait(0.05)
 				end
+				task.wait(delays.C2Move)
 			end
 		end)
 	end
 
 	local function t()
 		math.randomseed(os.clock() * 1e6)
+
+		for key, value in pairs(delays) do
+			delays[key] = tonumber(value)
+		end
 
 		b()
 		o()
