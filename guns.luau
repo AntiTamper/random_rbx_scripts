@@ -29,11 +29,12 @@ do
 				["Flat Cannon"] = true,
 				["MainCannon2"] = true,
 				["Mortar2"] = true,
+                ["Single  Deck Cannon"] = true,
 				["MountedRocket"] = true
 			},
 			remotes = {
 				FireCannon = { args = { "7782023531" } },
-				MoveCannon = { args = { "left", "right", "up", "down" } }
+				MoveCannon = { args = {"right","up", "down" } }
 			}
 		},
 		C2 = {
@@ -42,7 +43,8 @@ do
 				["Double Turret"] = true,
 				["SmallTurret"] = true,
 				["Single  Deck Cannon"] = true,
-				["Double Deck Cannon"] = true
+				["Double Deck Cannon"] = true,
+                ["DoubleMG"] = true
 			},
 			remotes = {
 				FireCannon = { args = { "true" } }
