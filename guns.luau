@@ -5,7 +5,12 @@ do
 	local player = Players.LocalPlayer
 	local playerGui = player:WaitForChild("PlayerGui")
 
-	local SelfTeamOnly = true
+	local enabled = false
+	local cached = {}
+	local cannonToGroup = {}
+	local gui, btn
+
+	local SelfTeamOnly = false
 
 	local shipList = { "OrangeShip", "GreenShip" }
 
@@ -13,10 +18,10 @@ do
 		C1 = {
 			args = { 7782023531 },
 			guns = {
-				["SmallCannon"] = true,
-				["BigCannon"] = true,
-				["Flat Cannon"] = true,
-				["MainCannon2"] = true,
+				["SmallCannon"] = false,
+				["BigCannon"] = false,
+				["Flat Cannon"] = false,
+				["MainCannon2"] = false,
 				["Mortar2"] = true,
 				["MountedRocket"] = true
 			}
@@ -33,28 +38,9 @@ do
 		}
 	}
 
-	local shipSet = {}
-	local cannonToGroup = {}
-	local enabled = false
-	local cached = {}
-	local gui, btn
-
-	local function aInit()
-		iMakeGui()
-		jHookButton()
-		cBuildCannonMap()
-		eRebuildCache()
-		kLoop()
-
-		if player:GetPropertyChangedSignal("Team") then
-			player:GetPropertyChangedSignal("Team"):Connect(function()
-				cached = {}
-			end)
-		end
-	end
-
-	local function bAllowedShipSet()
+	local function aAllowedShipSet()
 		local set = {}
+
 		if not SelfTeamOnly then
 			for _, n in ipairs(shipList) do
 				set[n] = true
@@ -71,25 +57,27 @@ do
 			set["OrangeShip"] = true
 			set["GreenShip"] = true
 		else
-			set["OrangeShip"] = true
-			set["GreenShip"] = true
+			for _, n in ipairs(shipList) do
+				set[n] = true
+			end
 		end
 
 		return set
 	end
 
-	local function cBuildCannonMap()
-		cannonToGroup = {}
+	local function bBuildCannonMap()
+		local map = {}
 		for groupKey, group in pairs(cannonGroups) do
 			for cannonName, isOn in pairs(group.guns) do
 				if isOn then
-					cannonToGroup[cannonName] = groupKey
+					map[cannonName] = groupKey
 				end
 			end
 		end
+		cannonToGroup = map
 	end
 
-	local function dFindFireRemote(cannonInst)
+	local function cFindFireRemote(cannonInst)
 		if not cannonInst or not cannonInst:IsDescendantOf(workspace) then
 			return nil
 		end
@@ -99,30 +87,56 @@ do
 			return direct
 		end
 
-		local found = cannonInst:FindFirstChild("FireCannon", true)
-		if found and found:IsA("RemoteEvent") then
-			return found
+		local deep = cannonInst:FindFirstChild("FireCannon", true)
+		if deep and deep:IsA("RemoteEvent") then
+			return deep
 		end
 
 		return nil
 	end
 
+	local function dMakeGui()
+		gui = Instance.new("ScreenGui")
+		gui.Name = "test"
+		gui.ResetOnSpawn = false
+		gui.Parent = playerGui
+
+		btn = Instance.new("TextButton")
+		btn.Name = "test"
+		btn.Size = UDim2.fromOffset(170, 52)
+		btn.Position = UDim2.new(0.06, 0, 0.55, 0)
+		btn.TextScaled = true
+		btn.BackgroundColor3 = Color3.new(0, 0, 0)
+		btn.BackgroundTransparency = 0.5
+		btn.TextColor3 = Color3.new(1, 1, 1)
+		btn.Text = "funny: OFF"
+		btn.Parent = gui
+
+		local corner = Instance.new("UICorner")
+		corner.Name = "test"
+		corner.CornerRadius = UDim.new(0, 14)
+		corner.Parent = btn
+	end
+
 	local function eRebuildCache()
 		local list = {}
 		local seen = {}
-		shipSet = bAllowedShipSet()
+		local shipSet = aAllowedShipSet()
 
 		for _, inst in ipairs(workspace:GetDescendants()) do
 			local groupKey = cannonToGroup[inst.Name]
 			if groupKey then
-				local fire = dFindFireRemote(inst)
+				local fire = cFindFireRemote(inst)
 				if fire then
 					local p = inst.Parent
 					while p and p ~= workspace do
 						if shipSet[p.Name] then
 							if not seen[fire] then
 								seen[fire] = true
-								list[#list + 1] = { r = fire, a = cannonGroups[groupKey].args }
+								local group = cannonGroups[groupKey]
+								if group and group.args then
+									list[#list + 1] = { r = fire, a = group.args }
+								end
 							end
 							break
 						end
@@ -161,41 +175,13 @@ do
 		end
 	end
 
-	local function hSetEnabled(v)
-		enabled = v
-		btn.Text = v and "funny: ON" or "funny: OFF"
-	end
-
-	function iMakeGui()
-		gui = Instance.new("ScreenGui")
-		gui.Name = "test"
-		gui.ResetOnSpawn = false
-		gui.Parent = playerGui
-
-		btn = Instance.new("TextButton")
-		btn.Name = "test"
-		btn.Size = UDim2.fromOffset(170, 52)
-		btn.Position = UDim2.new(0.06, 0, 0.55, 0)
-		btn.TextScaled = true
-		btn.BackgroundColor3 = Color3.new(0, 0, 0)
-		btn.BackgroundTransparency = 0.5
-		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.Text = "funny: OFF"
-		btn.Parent = gui
-
-		local corner = Instance.new("UICorner")
-		corner.Name = "test"
-		corner.CornerRadius = UDim.new(0, 14)
-		corner.Parent = btn
-	end
-
-	function jHookButton()
+	local function hHookButton()
 		local dragging = false
 		local dragStart
 		local startPos
 
 		btn.Activated:Connect(function()
-			hSetEnabled(not enabled)
+			iSetEnabled(not enabled)
 		end)
 
 		btn.InputBegan:Connect(function(input)
@@ -220,7 +206,14 @@ do
 		end)
 	end
 
-	function kLoop()
+	local function iSetEnabled(v)
+		enabled = v
+		if btn then
+			btn.Text = v and "funny: ON" or "funny: OFF"
+		end
+	end
+
+	local function jLoop()
 		task.spawn(function()
 			while true do
 				if enabled then
@@ -231,5 +224,19 @@ do
 		end)
 	end
 
-	aInit()
+	local function kInit()
+		bBuildCannonMap()
+		dMakeGui()
+		hHookButton()
+		eRebuildCache()
+		jLoop()
+
+		player:GetPropertyChangedSignal("Team"):Connect(function()
+			if SelfTeamOnly then
+				cached = {}
+			end
+		end)
+	end
+
+	kInit()
 end
