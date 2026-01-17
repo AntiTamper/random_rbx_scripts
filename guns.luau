@@ -16,7 +16,7 @@ do
 
 	local q = {
 		C1 = "0.1",
-		C2 = "0.01",
+		C2 = "0.05",
 		C1Move = "0.1",
 		F3 = "0.5"
 	}
@@ -101,13 +101,9 @@ do
 	local function aa(ab, ac)
 		if not ab or not ab:IsDescendantOf(workspace) then return nil end
 		local ad = ab:FindFirstChild(ac)
-		if ad and (ad:IsA("RemoteEvent") or ad:IsA("UnreliableRemoteEvent")) then
-			return ad
-		end
+		if ad and (ad:IsA("RemoteEvent") or ad:IsA("UnreliableRemoteEvent")) then return ad end
 		local ae = ab:FindFirstChild(ac, true)
-		if ae and (ae:IsA("RemoteEvent") or ae:IsA("UnreliableRemoteEvent")) then
-			return ae
-		end
+		if ae and (ae:IsA("RemoteEvent") or ae:IsA("UnreliableRemoteEvent")) then return ae end
 		return nil
 	end
 
@@ -156,9 +152,7 @@ do
 		local af = r.C1.remotes.FireCannon.args
 		for _, ag in ipairs(ad()) do
 			if ag.group == "C1" and ag.fire then
-				pcall(function()
-					ag.fire:FireServer(u(af[1]))
-				end)
+				pcall(function() ag.fire:FireServer(u(af[1])) end)
 			end
 		end
 	end
@@ -167,9 +161,7 @@ do
 		local ag = r.C2.remotes.FireCannon.args
 		for _, ah in ipairs(ad()) do
 			if ah.group == "C2" and ah.fire then
-				pcall(function()
-					ah.fire:FireServer(u(ag[1]))
-				end)
+				pcall(function() ah.fire:FireServer(u(ag[1])) end)
 			end
 		end
 	end
@@ -180,9 +172,7 @@ do
 			if ah.group == "C1" and ah.move then
 				local dir = cfg.args1[math.random(#cfg.args1)]
 				local bool = cfg.args2[math.random(#cfg.args2)]
-				pcall(function()
-					ah.move:FireServer(dir, bool)
-				end)
+				pcall(function() ah.move:FireServer(dir, bool) end)
 			end
 		end
 	end
@@ -205,34 +195,60 @@ do
 	end
 
 	local function ai()
-		if l then l.Text = e and "test1: ON" or "test1: OFF" end
-		if m then m.Text = f and "test2: ON" or "test2: OFF" end
-		if n then n.Text = g and "test3: ON" or "test3: OFF" end
+		if l then l.BackgroundColor3 = e and Color3.fromRGB(0,255,120) or Color3.fromRGB(255,70,70) end
+		if m then m.BackgroundColor3 = f and Color3.fromRGB(0,255,120) or Color3.fromRGB(255,70,70) end
+		if n then n.BackgroundColor3 = g and Color3.fromRGB(0,255,120) or Color3.fromRGB(255,70,70) end
 	end
 
 	local function aj()
-		j = Instance.new("ScreenGui", d)
+		j = Instance.new("ScreenGui")
 		j.ResetOnSpawn = false
+		j.Parent = d
 
-		k = Instance.new("Frame", j)
-		k.Size = UDim2.fromOffset(140, 108)
+		k = Instance.new("Frame")
+		k.Size = UDim2.fromOffset(150, 120)
 		k.Position = UDim2.new(0.06, 0, 0.55, 0)
-		k.BackgroundTransparency = 0.5
-		Instance.new("UICorner", k).CornerRadius = UDim.new(0, 12)
+		k.BackgroundColor3 = Color3.fromRGB(0,0,0)
+		k.BackgroundTransparency = 0.25
+		k.Parent = j
+		Instance.new("UICorner", k).CornerRadius = UDim.new(0,14)
+
+		local st = Instance.new("UIStroke", k)
+		st.Color = Color3.fromRGB(0,255,255)
+		st.Thickness = 1.5
+		st.Transparency = 0.3
+
+		local lay = Instance.new("UIListLayout", k)
+		lay.Padding = UDim.new(0,8)
+		lay.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		lay.VerticalAlignment = Enum.VerticalAlignment.Center
+
+		local pad = Instance.new("UIPadding", k)
+		pad.PaddingTop = UDim.new(0,10)
+		pad.PaddingBottom = UDim.new(0,10)
+		pad.PaddingLeft = UDim.new(0,10)
+		pad.PaddingRight = UDim.new(0,10)
 
 		local function mk(txt)
-			local btn = Instance.new("TextButton", k)
-			btn.Size = UDim2.new(1, 0, 0, 26)
-			btn.BackgroundTransparency = 0.35
-			btn.TextScaled = true
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1,0,0,28)
 			btn.Text = txt
-			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+			btn.TextScaled = true
+			btn.Font = Enum.Font.GothamBold
+			btn.TextColor3 = Color3.new(1,1,1)
+			btn.BackgroundTransparency = 0.15
+			btn.BackgroundColor3 = Color3.fromRGB(255,70,70)
+			btn.Parent = k
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+			local s2 = Instance.new("UIStroke", btn)
+			s2.Color = Color3.fromRGB(0,255,255)
+			s2.Transparency = 0.4
 			return btn
 		end
 
-		l = mk("test1: OFF")
-		m = mk("test2: OFF")
-		n = mk("test3: OFF")
+		l = mk("test1")
+		m = mk("test2")
+		n = mk("test3")
 	end
 
 	local function ak()
