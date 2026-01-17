@@ -9,7 +9,7 @@ do
 
 	local cannonGroups = {
 		C1 = { names = { "SmallCannon", "BigCannon", "Flat Cannon", "MainCannon2", "Mortar2", "MountedRocket" }, args = { 7782023531 } },
-		C2 = { names = { "Turret", "Double Turret", "SmallTurret", "Single Deck Turret" }, args = { true } }
+		C2 = { names = { "Turret", "Double Turret", "SmallTurret", "Single Deck Cannon" }, args = { true } }
 	}
 
 	local shipSet = {}
