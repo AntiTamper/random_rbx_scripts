@@ -133,6 +133,6 @@ task.spawn(function()
 		if enabled then
 			fireAll()
 		end
-		task.wait(1)
+		task.wait(0.05)
 	end
 end)
