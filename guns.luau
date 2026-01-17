@@ -5,7 +5,7 @@ do
 	local player = Players.LocalPlayer
 	local playerGui = player:WaitForChild("PlayerGui")
 
-	local SelfTeamOnly = true
+	local SelfTeamOnly = false
 
 	local shipList = { "OrangeShip", "GreenShip" }
 
