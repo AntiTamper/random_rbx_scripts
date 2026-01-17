@@ -38,7 +38,7 @@ do
 		}
 	}
 
-	local function aAllowedShipSet()
+	local function a()
 		local set = {}
 
 		if not SelfTeamOnly then
@@ -65,7 +65,7 @@ do
 		return set
 	end
 
-	local function bBuildCannonMap()
+	local function b()
 		local map = {}
 		for groupKey, group in pairs(cannonGroups) do
 			for cannonName, isOn in pairs(group.guns) do
@@ -77,7 +77,7 @@ do
 		cannonToGroup = map
 	end
 
-	local function cFindFireRemote(cannonInst)
+	local function c(cannonInst)
 		if not cannonInst or not cannonInst:IsDescendantOf(workspace) then
 			return nil
 		end
@@ -95,7 +95,7 @@ do
 		return nil
 	end
 
-	local function dMakeGui()
+	local function d()
 		gui = Instance.new("ScreenGui")
 		gui.Name = "test"
 		gui.ResetOnSpawn = false
@@ -118,15 +118,15 @@ do
 		corner.Parent = btn
 	end
 
-	local function eRebuildCache()
+	local function e()
 		local list = {}
 		local seen = {}
-		local shipSet = aAllowedShipSet()
+		local shipSet = a()
 
 		for _, inst in ipairs(workspace:GetDescendants()) do
 			local groupKey = cannonToGroup[inst.Name]
 			if groupKey then
-				local fire = cFindFireRemote(inst)
+				local fire = c(inst)
 				if fire then
 					local p = inst.Parent
 					while p and p ~= workspace do
@@ -149,7 +149,7 @@ do
 		cached = list
 	end
 
-	local function fPruneCache()
+	local function f()
 		local alive = {}
 		for _, item in ipairs(cached) do
 			local r = item.r
@@ -159,12 +159,12 @@ do
 		end
 		cached = alive
 		if #cached == 0 then
-			eRebuildCache()
+			e()
 		end
 	end
 
-	local function gFireAll()
-		fPruneCache()
+	local function g()
+		f()
 		for _, item in ipairs(cached) do
 			local r = item.r
 			if r and r.Parent and r:IsDescendantOf(workspace) then
@@ -175,13 +175,13 @@ do
 		end
 	end
 
-	local function hHookButton()
+	local function h()
 		local dragging = false
 		local dragStart
 		local startPos
 
 		btn.Activated:Connect(function()
-			iSetEnabled(not enabled)
+			i(not enabled)
 		end)
 
 		btn.InputBegan:Connect(function(input)
@@ -206,30 +206,30 @@ do
 		end)
 	end
 
-	local function iSetEnabled(v)
+	local function i(v)
 		enabled = v
 		if btn then
 			btn.Text = v and "funny: ON" or "funny: OFF"
 		end
 	end
 
-	local function jLoop()
+	local function j()
 		task.spawn(function()
 			while true do
 				if enabled then
-					gFireAll()
+					g()
 				end
 				task.wait(0.05)
 			end
 		end)
 	end
 
-	local function kInit()
-		bBuildCannonMap()
-		dMakeGui()
-		hHookButton()
-		eRebuildCache()
-		jLoop()
+	local function k()
+		b()
+		d()
+		h()
+		e()
+		j()
 
 		player:GetPropertyChangedSignal("Team"):Connect(function()
 			if SelfTeamOnly then
@@ -238,5 +238,5 @@ do
 		end)
 	end
 
-	kInit()
+	k()
 end
