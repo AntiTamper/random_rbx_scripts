@@ -19,17 +19,17 @@ do
 
 	local delays = {
 		C1 = "0.1",
-		C2 = "0.05",
+		C2 = "0",
 		C2Move = "0"
 	}
 
 	local cannonGroups = {
 		C1 = {
 			guns = {
-				["SmallCannon"] = false,
-				["BigCannon"] = false,
-				["Flat Cannon"] = false,
-				["MainCannon2"] = false,
+				["SmallCannon"] = true,
+				["BigCannon"] = true,
+				["Flat Cannon"] = true,
+				["MainCannon2"] = true,
 				["Mortar2"] = true,
 				["MountedRocket"] = true
 			},
