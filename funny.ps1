@@ -1,22 +1,22 @@
-# URL to open
-$url = "http://youtube-watch.rf.gd/"
+$html = @"
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html,body{margin:0;padding:0;background:black;height:100%;overflow:hidden}
+video{width:100vw;height:100vh;object-fit:contain}
+</style>
+</head>
+<body>
+<video autoplay loop muted playsinline>
+<source src="https://chess-ai.42web.io/images/tuff4.mp4" type="video/mp4">
+</video>
+</body>
+</html>
+"@
 
-# Path to Microsoft Edge (default install location)
-$edgePath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+$encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($html))
+$url = "data:text/html;base64,$encoded"
 
-# Start Edge in kiosk (fullscreen) mode
-$process = Start-Process -FilePath $edgePath `
-    -ArgumentList "--kiosk $url --edge-kiosk-type=fullscreen --no-first-run" `
-    -PassThru
-
-# Wait 2 minutes (120 seconds)
-Start-Sleep -Seconds 120
-
-# Close Edge
-if (!$process.HasExited) {
-    $process.CloseMainWindow() | Out-Null
-    Start-Sleep -Seconds 5
-    if (!$process.HasExited) {
-        $process.Kill()
-    }
-}
+Start-Process "msedge.exe" "--kiosk $url --edge-kiosk-type=fullscreen --autoplay-policy=no-user-gesture-required"
